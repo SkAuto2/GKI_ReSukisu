@@ -13,6 +13,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.abk.kernel.BuildConfig
 import com.abk.kernel.R
+import com.abk.kernel.data.db.AppDatabase
+import com.abk.kernel.data.db.toEntity
 import com.abk.kernel.data.model.*
 import com.abk.kernel.data.repository.GitHubRepository
 import com.abk.kernel.data.repository.PreferencesRepository
@@ -167,6 +169,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = PreferencesRepository(application)
     val github = GitHubRepository()
     private val gson = Gson()
+    private val db = AppDatabase.getInstance(application)
+    private val buildModuleDao = db.buildModuleDao()
     private val ksuModuleListType = object : TypeToken<List<Map<String, Any?>>>() {}.type
     private var hasSavedBuildConfig = false
     private val monitoredRunIds = mutableSetOf<Long>()
@@ -3373,6 +3377,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun deleteBuildModuleRepository(id: String) {
         saveBuildModuleRepositories(_uiState.value.buildModuleRepositories.filterNot { it.id == id })
+        viewModelScope.launch(Dispatchers.IO) { buildModuleDao.deleteRepositoryById(id) }
     }
 
     fun refreshBuildModuleRepository(id: String) {
@@ -3725,6 +3730,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val sanitized = sanitizeBuildModuleRepositories(repositories)
         _uiState.update { it.copy(buildModuleRepositories = sanitized) }
         viewModelScope.launch { prefs.saveBuildModuleRepositoriesJson(gson.toJson(sanitized)) }
+        viewModelScope.launch(Dispatchers.IO) {
+            for (repo in sanitized) {
+                buildModuleDao.insertRepository(repo.toEntity())
+                buildModuleDao.replaceItemsForRepository(
+                    repo.id,
+                    repo.modules.map { it.toEntity(repo.id) }
+                )
+            }
+        }
     }
 
     fun loadBuildParameterSummary(runId: Long, force: Boolean = false) {
