@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
 }
 
 val githubClientId = providers.gradleProperty("ABK_GITHUB_CLIENT_ID")
@@ -134,6 +135,11 @@ dependencies {
 
     // Preferences
     implementation(libs.datastore.preferences)
+
+    // Database
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
