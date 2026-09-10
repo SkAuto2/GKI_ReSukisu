@@ -40,6 +40,7 @@ function renderInlineMarkdown(text) {
   });
 
   html = html.replace(/\[([^\]\n]+)\]\(([^)\s]+)\)/g, function (_, label, url) {
+    if (!/^https?:\/\//i.test(url)) return label;
     return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + label + '</a>';
   });
   html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');

@@ -158,7 +158,9 @@ object RootUtils {
         partition: String = "boot",
         onOutput: ((String) -> Unit)? = null
     ): ShellResult {
+        require(partition.matches(Regex("^[a-zA-Z0-9_-]+$"))) { "invalid partition name" }
         val safeImage = shellQuote(imagePath)
+        val safePartition = shellQuote(partition)
         val script = """
             set -e
             echo "[ABK] 开始刷写 ${partition} 镜像"

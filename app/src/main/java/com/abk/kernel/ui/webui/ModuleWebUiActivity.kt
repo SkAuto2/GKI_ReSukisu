@@ -150,7 +150,7 @@ class ModuleWebUiActivity : Activity() {
                 "utf-8",
                 200,
                 "OK",
-                mapOf("Access-Control-Allow-Origin" to "*"),
+                mapOf("Access-Control-Allow-Origin" to "https://$WEB_HOST"),
                 ByteArrayInputStream(bytes)
             )
         }
